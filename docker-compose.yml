@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  proxy:
+    image: nginx:alpine
+    container_name: rpcproxy
+    ports:
+      - "8545:80"
+    links:
+       - ethereum:geth
+    volumes:
+      - "./rpcproxy/njs:/etc/nginx/njs"
+      - "./rpcproxy/logs:/var/log/nginx"
+      - "./rpcproxy/nginx.conf:/etc/nginx/nginx.conf"
+    restart: always
+  geth:
+    image: ethereum/client-go:latest
+    container_name: geth
+    restart: always
