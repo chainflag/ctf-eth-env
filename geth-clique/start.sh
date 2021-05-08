@@ -1,9 +1,10 @@
 #!/bin/bash
 exec geth \
-	--nousb \
 	--networkid "$(cat /geth/genesis.json | jq '.config.chainId')" \
 	--datadir "/geth/chain" \
+	--keystore "/geth/keys" \
+	--password "/geth/keys/dev-key-password.txt" \
 	--verbosity ${GETH_VERBOSITY:-2} --mine \
-	--rpc --rpcapi admin,db,debug,eth,miner,net,personal,shh,txpool,web3 --rpcaddr 0.0.0.0 --rpcport 8545 --rpccorsdomain '*' --rpcvhosts '*' \
-	--nodiscover \
+	--http --http.api admin,debug,eth,miner,net,personal,txpool,web3 --http.addr 0.0.0.0 --http.port 8545 --http.corsdomain '*' --http.vhosts '*' \
+	--nodiscover
 	--targetgaslimit 6500000
