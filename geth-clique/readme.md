@@ -7,6 +7,7 @@
 1. create a sealer account
 ```bash
 docker run -it --rm  -v `pwd`/data:/root/.ethereum ethereum/client-go account new
+echo "your keystore password" > `pwd`/data/password.txt
 ```
 2. generate genesis using puppeth
 ```bash
@@ -62,19 +63,19 @@ What would you like to do? (default = stats)
 
 Which folder to save the genesis specs into? (default = current)
   Will create genesis.json, genesis-aleth.json, genesis-harmony.json, genesis-parity.json
-> 
+> data
 ```
 
 ## Initialize datadir with genesis
 ```bash
 docker run -it --rm  -v `pwd`/data:/root/.ethereum ethereum/client-go init "/root/.ethereum/genesis.json"
 ```
-## Start POA network(test)
+## Start POA network
 ```bash
 docker run -it -v `pwd`/data:/root/.ethereum -p 8545:8545 ethereum/client-go \
+    --allow-insecure-unlock \
     --networkid "$(cat `pwd`/data/genesis.json | jq '.config.chainId')" \
-    --unlock "0" --password "`pwd`/data/password.txt" \
-    --mine \
-    --http --http.api debug,eth,net,personal,web3 --http.addr 0.0.0.0 --http.port 8545 --http.corsdomain '*' --http.vhosts '*' \
-    --nodiscover
+    --unlock "0" --password "/root/.ethereum/password.txt" \
+    --nodiscover --mine \
+    --http --http.api debug,eth,net,personal,web3 --http.addr 0.0.0.0 --http.port 8545 --http.corsdomain '*' --http.vhosts '*'
 ```
