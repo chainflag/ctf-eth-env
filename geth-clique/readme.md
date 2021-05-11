@@ -70,12 +70,3 @@ Which folder to save the genesis specs into? (default = current)
 ```bash
 docker run -it --rm  -v `pwd`/data:/root/.ethereum ethereum/client-go init "/root/.ethereum/genesis.json"
 ```
-## Start POA network
-```bash
-docker run -it -v `pwd`/data:/root/.ethereum -p 8545:8545 ethereum/client-go \
-    --allow-insecure-unlock \
-    --networkid "$(cat `pwd`/data/genesis.json | jq '.config.chainId')" \
-    --unlock "0" --password "/root/.ethereum/password.txt" \
-    --nodiscover --mine \
-    --http --http.api debug,eth,net,personal,web3 --http.addr 0.0.0.0 --http.port 8545 --http.corsdomain '*' --http.vhosts '*'
-```

@@ -6,7 +6,7 @@ services:
     ports:
       - "8545:80"
     links:
-       - ethereum
+      - ethereum
     volumes:
       - "./rpcproxy/njs:/etc/nginx/njs"
       - "./rpcproxy/logs:/var/log/nginx"
@@ -19,5 +19,5 @@ services:
       - "8545"
     volumes:
       - "./geth-clique/data:/root/.ethereum"
-    command: --allow-insecure-unlock --unlock="0" --password="/root/.ethereum/password.txt" --nodiscover --mine --http --http.api=debug,eth,net,personal,web3 --http.addr=0.0.0.0 --http.port=8545 --http.corsdomain='*' --http.vhosts='*'
+    command: --allow-insecure-unlock --unlock="0" --password="/root/.ethereum/password.txt" --nodiscover --mine --http --http.api=debug,eth,web3 --http.addr=0.0.0.0 --http.port=8545 --http.corsdomain='*' --http.vhosts='*'
     restart: always
