@@ -1,7 +1,17 @@
 function access(r) {
+    var whitelist = [
+        "eth_getBalance",
+        "eth_getCode",
+        "eth_getStorageAt",
+        "eth_call",
+        "eth_getTransactionByHash",
+        "eth_getTransactionReceipt",
+        "eth_sendRawTransaction"
+    ]
+    
     try {
         var payload = JSON.parse(r.requestBody);
-        if (!isAllowedMethod(payload.method)) {
+        if (!whitelist.includes(payload.method)) {
             r.return(401, "jsonrpc method is not allow\n");
             return;
         }
@@ -13,8 +23,4 @@ function access(r) {
     r.internalRedirect('@jsonrpc');
 }
 
-function isAllowedMethod (method) {
-    return true;
-}
-
-export default {access}
+export default { access }
