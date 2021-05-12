@@ -1,5 +1,9 @@
 # ctf-eth-env
 
+As the data in the permissionless blockchain is public, dishonest CTF players of blockchain(smart contract) challenge can plagiarize someone else's solutions by querying the block information, which causes unfairness.  
+
+So the idea of this project is to disable several RPC methods (e.g. `eth_getBlockByHash`, `eth_getBlockByNumber`) of an Ethereum POA node and make it as challenging server environment so that players cannot know the transaction IDs of others. This solution is to use [Nginx](https://www.nginx.com/) as a reverse proxy and set up a whitelist of Ethereum RPC methods using [njs](https://nginx.org/en/docs/njs/) to control access to the upstream Ethereum POA nodes.
+
 ### Prerequisites
 * [Docker](https://www.docker.com/)
 * [Golang](https://golang.org/)
@@ -7,13 +11,13 @@
 ### Initialize Ethereum POA Network
 * create a sealer account
 ```bash
-docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go account new
-echo "your keystore password" > `pwd`/geth-clique/password.txt
+$ docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go account new
+$ echo "your keystore password" > `pwd`/geth-clique/password.txt
 ```
 * generate genesis configuration
 ```bash
-go install github.com/ethereum/go-ethereum/cmd/puppeth@latest
-puppeth
+$ go install github.com/ethereum/go-ethereum/cmd/puppeth@latest
+$ puppeth
 
 Please specify a network name to administer (no spaces, hyphens or capital letters please)
 > genesis
@@ -69,10 +73,10 @@ Which folder to save the genesis specs into? (default = current)
 
 * Initialize a new chain
 ```bash
-docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go init "/root/.ethereum/genesis.json"
+$ docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go init "/root/.ethereum/genesis.json"
 ```
 
 ### Run Ethereum with nginx proxy
-```
-docker compose up
+```bash
+$ docker compose up
 ```
