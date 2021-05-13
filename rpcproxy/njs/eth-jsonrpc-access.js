@@ -9,8 +9,12 @@ function access(r) {
         "eth_call",
         "eth_getTransactionByHash",
         "eth_getTransactionReceipt",
+        "eth_getTransactionCount",
         "eth_sendRawTransaction",
-        "web3_clientVersion"
+        "web3_clientVersion",
+        "eth_estimateGas",
+        "eth_gasPrice",
+        "eth_blockNumber"
     ]
     
     try {
