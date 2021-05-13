@@ -1,12 +1,16 @@
 function access(r) {
     var whitelist = [
+        "net_version",
+        "rpc_modules",
+        "eth_chainId",
         "eth_getBalance",
         "eth_getCode",
         "eth_getStorageAt",
         "eth_call",
         "eth_getTransactionByHash",
         "eth_getTransactionReceipt",
-        "eth_sendRawTransaction"
+        "eth_sendRawTransaction",
+        "web3_clientVersion"
     ]
     
     try {
