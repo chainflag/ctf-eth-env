@@ -78,5 +78,6 @@ $ docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go i
 
 ### Run Ethereum with nginx proxy
 ```bash
+$ export NETWORKID=`cat geth-clique/genesis.json | jq '.config.chainId'`
 $ docker compose up
 ```
