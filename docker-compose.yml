@@ -12,6 +12,7 @@ services:
       - "./rpcproxy/log:/var/log/nginx"
       - "./rpcproxy/nginx.conf:/etc/nginx/nginx.conf"
     restart: always
+  
   ethereum:
     image: ethereum/client-go:latest
     container_name: geth-clique
