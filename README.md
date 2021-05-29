@@ -1,8 +1,8 @@
 # ctf-eth-env
 
-As the data in the permissionless blockchain is public, dishonest CTF players of blockchain(smart contract) challenge can plagiarize someone else's solutions by querying the block information, which causes unfairness.  
+It is unfair that some CTF blockchain challenge players can cheat by searching back the blockchain history, where all the transactions of those who have solved the challenges are recorded. These dishonest players can solve the challenges simply by replaying the transactions. The root cause of this problem is that all data in the permissionless blockchain is public and everyone can fetch it by querying the specified RPC methods.
 
-So the idea of this project is to disable several RPC methods (e.g. `eth_getBlockByHash`, `eth_getBlockByNumber`) of an Ethereum POA node and make it as challenging server environment so that players cannot know the transaction IDs of others. This solution is to use [Nginx](https://www.nginx.com/) as a reverse proxy and set up a whitelist of Ethereum RPC methods using [njs](https://nginx.org/en/docs/njs/) to control access to the upstream Ethereum POA nodes.
+So the idea of this project is to disable several RPC methods (e.g. `eth_getBlockByHash`, `eth_getBlockByNumber`) of an Ethereum POA node and then use it as the challenge server-side environment. In this way, players on the client side have no longer any access to the transaction information of others. The solution is to use [Nginx](https://www.nginx.com/) for reverse proxying and config a whitelist of Ethereum RPC methods by using [njs](https://nginx.org/en/docs/njs/) for access control to the upstream Ethereum POA nodes.
 
 ### Prerequisites
 * [Docker](https://www.docker.com/)
@@ -52,7 +52,7 @@ Should the precompile-addresses (0x1 .. 0xff) be pre-funded with 1 wei? (advisab
 > no
 
 Specify your chain/network ID if you want an explicit one (default = random)
-> 
+>
 
 What would you like to do? (default = stats)
  1. Show network stats
