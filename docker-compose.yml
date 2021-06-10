@@ -11,6 +11,8 @@ services:
       - "./rpcproxy/njs:/etc/nginx/njs"
       - "./rpcproxy/log:/var/log/nginx"
       - "./rpcproxy/nginx.conf:/etc/nginx/nginx.conf"
+    depends_on:
+      - ethereum
     restart: always
   
   ethereum:
