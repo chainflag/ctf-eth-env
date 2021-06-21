@@ -15,10 +15,14 @@ function access(r) {
         "eth_estimateGas",
         "eth_gasPrice",
         "eth_blockNumber"
-    ].map(method => method.toLowerCase())
-    
+    ].map(method => method.toLowerCase());
+
     try {
         var payload = JSON.parse(r.requestBody.toLowerCase());
+        if (payload.jsonrpc !== "2.0") {
+            r.return(401, "jsonrpc version not supported\n");
+            return;
+        }
         if (!whitelist.includes(payload.method)) {
             r.return(401, "jsonrpc method is not allow\n");
             return;
