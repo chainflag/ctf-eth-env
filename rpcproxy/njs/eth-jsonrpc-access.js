@@ -15,16 +15,20 @@ function access(r) {
         "eth_estimateGas",
         "eth_gasPrice",
         "eth_blockNumber"
-    ].map(method => method.toLowerCase());
+    ];
 
     try {
-        var payload = JSON.parse(r.requestBody.toLowerCase());
+        var payload = JSON.parse(r.requestBody);
         if (payload.jsonrpc !== "2.0") {
             r.return(401, "jsonrpc version not supported\n");
             return;
         }
         if (!whitelist.includes(payload.method)) {
-            r.return(401, "jsonrpc method is not allow\n");
+            r.return(401, "jsonrpc method is not allowed\n");
+            return;
+        }
+        if (Object.keys(payload).filter(key => key.toLowerCase() === 'method').length > 1) {
+            r.return(401, "jsonrpc method is not allowed\n");
             return;
         }
     } catch (error) {
