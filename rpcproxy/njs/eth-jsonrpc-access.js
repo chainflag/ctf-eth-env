@@ -15,10 +15,10 @@ function access(r) {
         "eth_estimateGas",
         "eth_gasPrice",
         "eth_blockNumber"
-    ]
+    ].map(method => method.toLowerCase())
     
     try {
-        var payload = JSON.parse(r.requestBody);
+        var payload = JSON.parse(r.requestBody.toLowerCase());
         if (!whitelist.includes(payload.method)) {
             r.return(401, "jsonrpc method is not allow\n");
             return;
