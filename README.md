@@ -95,6 +95,10 @@ $ export NETWORKID=`cat geth-clique/genesis.json | jq '.config.chainId'`
 $ docker compose up
 ```
 
+## Related Project
+* [eth-faucet](https://github.com/chainflag/eth-faucet)
+* [eth-challenge-base](https://github.com/chainflag/eth-challenge-base)
+
 ## Contributing
 
 PRs accepted.
