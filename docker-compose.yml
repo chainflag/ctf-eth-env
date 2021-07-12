@@ -22,5 +22,5 @@ services:
       - "8545"
     volumes:
       - ./geth-clique:/root/.ethereum
-    command: --allow-insecure-unlock --networkid=${NETWORKID} --unlock="0" --password="/root/.ethereum/password.txt" --nodiscover --mine --http --http.api=debug,eth,web3,net --http.addr=0.0.0.0 --http.port=8545 --http.corsdomain='*' --http.vhosts='*'
+    command: --allow-insecure-unlock --networkid=${NETWORKID} --unlock="0" --password="/root/.ethereum/password.txt" --nodiscover --mine --http --http.api=debug,eth,net,web3 --http.addr=0.0.0.0 --http.port=8545 --http.corsdomain='*' --http.vhosts='*'
     restart: always

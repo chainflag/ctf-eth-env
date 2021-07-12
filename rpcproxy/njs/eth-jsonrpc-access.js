@@ -1,20 +1,20 @@
 function access(r) {
     var whitelist = [
-        "net_version",
-        "rpc_modules",
+        "eth_blockNumber",
+        "eth_call",
         "eth_chainId",
+        "eth_estimateGas",
+        "eth_gasPrice",
         "eth_getBalance",
         "eth_getCode",
         "eth_getStorageAt",
-        "eth_call",
         "eth_getTransactionByHash",
-        "eth_getTransactionReceipt",
         "eth_getTransactionCount",
+        "eth_getTransactionReceipt",
         "eth_sendRawTransaction",
-        "web3_clientVersion",
-        "eth_estimateGas",
-        "eth_gasPrice",
-        "eth_blockNumber"
+        "net_version",
+        "rpc_modules",
+        "web3_clientVersion"
     ];
 
     try {
