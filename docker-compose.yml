@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.3"
 services:
   proxy:
     image: nginx:stable-alpine
@@ -15,12 +15,11 @@ services:
       - ethereum
     restart: always
   
-  ethereum:
-    image: ethereum/client-go:latest
+  geth:
+    build: geth-clique
     container_name: geth-clique
     expose:
       - "8545"
     volumes:
       - ./geth-clique:/root/.ethereum
-    command: --allow-insecure-unlock --networkid=${NETWORKID} --unlock="0" --password="/root/.ethereum/password.txt" --nodiscover --mine --http --http.api=debug,eth,net,web3 --http.addr=0.0.0.0 --http.port=8545 --http.corsdomain='*' --http.vhosts='*'
     restart: always
