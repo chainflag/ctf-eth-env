@@ -21,7 +21,7 @@ $ cd ctf-eth-env
 * [Docker](https://www.docker.com/)
 * [Golang](https://golang.org/)
 
-### Initialize Ethereum POA Network
+### Run Ethereum POA Network
 * create a sealer account
 ```bash
 $ docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go account new
@@ -84,7 +84,7 @@ Which folder to save the genesis specs into? (default = current)
 > geth-clique
 ```
 
-### Run Ethereum with nginx proxy
+* Run Geth with nginx proxy
 ```bash
 $ docker-compose up -d
 ```

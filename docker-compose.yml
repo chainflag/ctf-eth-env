@@ -6,13 +6,13 @@ services:
     ports:
       - "8545:80"
     links:
-      - ethereum
+      - geth
     volumes:
       - ./rpcproxy/njs:/etc/nginx/njs
       - ./rpcproxy/log:/var/log/nginx
       - ./rpcproxy/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - ethereum
+      - geth
     restart: always
   
   geth:
