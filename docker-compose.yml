@@ -1,26 +1,25 @@
-version: "3.9"
+version: "3.3"
 services:
+  geth:
+    build: geth-clique
+    container_name: geth-clique
+    expose:
+      - "8545"
+    volumes:
+      - ./geth-clique:/root/.ethereum
+    restart: always
+
   proxy:
     image: nginx:stable-alpine
     container_name: rpcproxy
     ports:
       - "8545:80"
     links:
-      - ethereum
+      - geth
     volumes:
       - ./rpcproxy/njs:/etc/nginx/njs
       - ./rpcproxy/log:/var/log/nginx
       - ./rpcproxy/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - ethereum
-    restart: always
-  
-  ethereum:
-    image: ethereum/client-go:latest
-    container_name: geth-clique
-    expose:
-      - "8545"
-    volumes:
-      - ./geth-clique:/root/.ethereum
-    command: --allow-insecure-unlock --networkid=${NETWORKID} --unlock="0" --password="/root/.ethereum/password.txt" --nodiscover --mine --http --http.api=debug,eth,net,web3 --http.addr=0.0.0.0 --http.port=8545 --http.corsdomain='*' --http.vhosts='*'
+      - geth
     restart: always
