@@ -11,27 +11,20 @@ So the idea of this project is to disable several RPC methods (e.g. `eth_getBloc
 
 ## Install
 ```
-$ git clone https://github.com/chainflag/ctf-eth-env.git
-$ cd ctf-eth-env
+git clone https://github.com/chainflag/ctf-eth-env.git
+cd ctf-eth-env
 ```
 
 ## Usage
-
-### Prerequisites
-* [Docker](https://www.docker.com/)
-* [Golang](https://golang.org/)
-
-### Run Ethereum POA Network
-* create a sealer account
+### Create a sealer account
 ```bash
-$ docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go account new
-$ echo "your keystore password" > `pwd`/geth-clique/password.txt
+docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go account new
+echo "your keystore password" > `pwd`/geth-clique/password.txt
 ```
-* generate genesis configuration
+### Generate genesis config
 ```bash
-$ go install github.com/ethereum/go-ethereum/cmd/puppeth@latest
+$ go get github.com/ethereum/go-ethereum/cmd/puppeth # or download Geth & Tools from https://geth.ethereum.org/downloads/
 $ puppeth
-
 Please specify a network name to administer (no spaces, hyphens or capital letters please)
 > genesis
 
@@ -84,9 +77,9 @@ Which folder to save the genesis specs into? (default = current)
 > geth-clique
 ```
 
-* Run Geth with nginx proxy
+### Run Geth with proxy
 ```bash
-$ docker-compose up -d
+docker-compose up -d
 ```
 
 ## Related Project
