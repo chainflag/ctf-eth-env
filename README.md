@@ -18,8 +18,8 @@ cd ctf-eth-env
 ## Usage
 ### Create a sealer account
 ```bash
-docker run -it --rm  -v `pwd`/geth-clique:/root/.ethereum ethereum/client-go account new
-echo "your keystore password" > `pwd`/geth-clique/password.txt
+docker run -it --rm  -v `pwd`/config:/root/.ethereum ethereum/client-go account new
+echo "your keystore password" > `pwd`/config/password.txt
 ```
 ### Generate genesis config
 ```bash
@@ -74,7 +74,7 @@ What would you like to do? (default = stats)
 
 Which folder to save the genesis specs into? (default = current)
   Will create genesis.json, genesis-aleth.json, genesis-harmony.json, genesis-parity.json
-> geth-clique
+> config
 ```
 
 ### Run Geth with proxy
