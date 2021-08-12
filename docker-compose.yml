@@ -6,7 +6,8 @@ services:
     expose:
       - "8545"
     volumes:
-      - ./config:/root/.ethereum
+      - ./config:/config
+      - ./data:/data
     restart: always
 
   proxy:
