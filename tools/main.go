@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/big"
 	"math/rand"
+	"path/filepath"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -69,6 +72,12 @@ func makeCliqueGenesis(sealer common.Address, chainID *big.Int, period uint64) *
 	return genesis
 }
 
+func saveGenesis(folder, network string, genesis *core.Genesis) error {
+	path := filepath.Join(folder, fmt.Sprintf("%s.json", network))
+	out, _ := json.MarshalIndent(genesis, "", "  ")
+	return ioutil.WriteFile(path, out, 0644)
+}
+
 func main() {
 	ks, err := createKeystore("../config/keystore", "password")
 	if err != nil {
@@ -78,4 +87,6 @@ func main() {
 
 	genesis := makeCliqueGenesis(ks.Address, nil, 15)
 	fmt.Println(genesis)
+
+	saveGenesis("../config", "genesis", genesis)
 }
