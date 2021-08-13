@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/urfave/cli/v2"
 )
 
 type Keystore struct {
@@ -73,20 +75,53 @@ func makeCliqueGenesis(sealer common.Address, chainID *big.Int, period uint64) *
 }
 
 func saveGenesis(folder, network string, genesis *core.Genesis) error {
-	path := filepath.Join(folder, fmt.Sprintf("%s.json", network))
+	path := filepath.Join(folder, network+".json")
 	out, _ := json.MarshalIndent(genesis, "", "  ")
 	return ioutil.WriteFile(path, out, 0644)
 }
 
 func main() {
-	ks, err := createKeystore("../config/keystore", "password")
-	if err != nil {
+	app := &cli.App{
+		Name:  "conf-gen",
+		Usage: "generate config",
+		Action: func(c *cli.Context) error {
+			fmt.Println("boom! I say!")
+			return nil
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "path",
+				Value: "path",
+				Usage: "",
+			},
+		},
+	}
+
+	app.Commands = []*cli.Command{
+		{
+			Name:  "all",
+			Usage: "",
+			Action: func(c *cli.Context) error {
+				return nil
+			},
+		},
+		{
+			Name:  "keystore",
+			Usage: "",
+			Action: func(c *cli.Context) error {
+				return nil
+			},
+		},
+		{
+			Name:  "genesis",
+			Usage: "",
+			Action: func(c *cli.Context) error {
+				return nil
+			},
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(ks)
-
-	genesis := makeCliqueGenesis(ks.Address, nil, 15)
-	fmt.Println(genesis)
-
-	saveGenesis("../config", "genesis", genesis)
 }
