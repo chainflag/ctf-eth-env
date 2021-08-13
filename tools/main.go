@@ -82,40 +82,115 @@ func saveGenesis(folder, network string, genesis *core.Genesis) error {
 
 func main() {
 	app := &cli.App{
-		Name:  "conf-gen",
-		Usage: "generate config",
+		UseShortOptionHandling: true,
+		Name:                   "conf-gen",
+		Usage:                  "generate config",
 		Action: func(c *cli.Context) error {
-			fmt.Println("boom! I say!")
+			fmt.Println("you can use 'conf-gen create -p 199924' to make what you want")
+			fmt.Println("you can use 'conf-gen  -h ' to get some help")
 			return nil
 		},
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "path",
-				Value: "path",
-				Usage: "",
-			},
-		},
+		Flags: []cli.Flag{},
 	}
 
 	app.Commands = []*cli.Command{
 		{
-			Name:  "all",
-			Usage: "",
+			Name:  "create",
+			Usage: "Create all of them",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "folder",
+					Usage:    "your config address",
+					Value:    "../config",
+					Required: false,
+					Aliases:  []string{"f", "v"}},
+				&cli.StringFlag{
+					Name:     "password",
+					Usage:    "your password",
+					Required: true,
+					Aliases:  []string{"p"}},
+			},
 			Action: func(c *cli.Context) error {
+				ks, err := createKeystore(filepath.Join(c.String("path"), "keystore"), c.String("password"))
+				if err != nil {
+					log.Fatal(err)
+				}
+				saveGenesis("../config", "genesis", makeCliqueGenesis(ks.Address, nil, 15))
+				fmt.Println("Successful,Here is the public key address corresponding to your keystore:")
+				fmt.Println(ks.Address)
 				return nil
 			},
 		},
 		{
 			Name:  "keystore",
-			Usage: "",
+			Usage: "Create your keystore",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "folder",
+					Value:    "../config/keystore",
+					Usage:    "your Keystore folder",
+					Required: false,
+					Aliases:  []string{"f", "v"}},
+				&cli.StringFlag{
+					Name:     "password",
+					Usage:    "your address",
+					Required: true,
+					Aliases:  []string{"p"}},
+			},
 			Action: func(c *cli.Context) error {
+				ks, err := createKeystore(c.String("folder"), c.String("password"))
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Println("Successful,Here is the public key address corresponding to your keystore:")
+				fmt.Println(ks.Address)
 				return nil
 			},
 		},
 		{
 			Name:  "genesis",
-			Usage: "",
+			Usage: "Create genesis to generate your private chains..",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "genName",
+					Value:    "genesis",
+					Usage:    "your genesisName",
+					Required: false,
+					Aliases:  []string{"n"}},
+				&cli.StringFlag{
+					Name:     "folder",
+					Value:    "../config",
+					Usage:    "your folder",
+					Required: false,
+					Aliases:  []string{"f", "v"}},
+				&cli.StringFlag{
+					Name:     "address",
+					Usage:    "your address",
+					Required: true,
+					Aliases:  []string{"a"}},
+				&cli.Int64Flag{
+					Name:     "chainId",
+					Value:    1,
+					Usage:    "your ChainId",
+					Required: false,
+					Aliases:  []string{"i"}},
+				&cli.Uint64Flag{
+					Name:     "seconds",
+					Value:    15,
+					Usage:    "Your seconds",
+					Required: false,
+					Aliases:  []string{"s"}},
+			},
 			Action: func(c *cli.Context) error {
+				fmt.Println("hello world")
+				var genesis *core.Genesis
+				if c.Int64("chainId") == 1 {
+					genesis = makeCliqueGenesis(common.HexToAddress(c.String("address")), nil, c.Uint64("seconds"))
+				} else {
+					genesis = makeCliqueGenesis(common.HexToAddress(c.String("address")), big.NewInt(c.Int64("chainId")), c.Uint64("seconds"))
+				}
+				saveGenesis(c.String("folder"), c.String("genName"), genesis)
+				fmt.Println("Successful")
 				return nil
 			},
 		},
