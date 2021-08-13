@@ -67,11 +67,8 @@ func makeCliqueGenesis(sealer common.Address, chainID *big.Int, period uint64) *
 	return genesis
 }
 
-func saveGenesis(folder, network string, genesis *core.Genesis) error {
-	if network == "" {
-		network = "genesis"
-	}
-	path := filepath.Join(folder, network+".json")
+func saveGenesis(genesisPath string, genesis *core.Genesis) error {
+	path, _ := filepath.Abs(genesisPath)
 	out, _ := json.MarshalIndent(genesis, "", "  ")
 	return ioutil.WriteFile(path, out, 0644)
 }
@@ -95,31 +92,33 @@ func main() {
 		Name:  "conf-gen",
 		Usage: "To create everything you need to set up the ctf eth env",
 		Action: func(c *cli.Context) error {
+			folder := c.String("folder")
 			rand.Seed(time.Now().UnixNano())
 			password := randSeq(20)
-			ks, err := createKeystore(filepath.Join(c.String("folder"), "keystore"), password)
+			ks, err := createKeystore(filepath.Join(folder, "keystore"), password)
 			if err != nil {
 				fatalExit(fmt.Errorf("failed to create account: %v", err))
 			}
-			if err := ioutil.WriteFile(filepath.Join(c.String("folder"), "password.txt"), []byte(password), 0644); err != nil {
+			passwordPath := filepath.Join(folder, "password.txt")
+			if err := ioutil.WriteFile(passwordPath, []byte(password), 0644); err != nil {
 				fatalExit(fmt.Errorf("failed to save keystore pass: %v", err))
 			}
-			if err := saveGenesis(c.String("folder"), "", makeCliqueGenesis(ks.Address, new(big.Int).SetUint64(uint64(rand.Intn(65536))), 15)); err != nil {
+			genesisPath := filepath.Join(folder, "genesis.json")
+			if err := saveGenesis(genesisPath, makeCliqueGenesis(ks.Address, new(big.Int).SetUint64(uint64(rand.Intn(65536))), 15)); err != nil {
 				fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
 			}
 			fmt.Printf("\nSuccessfully created the required config\n\n")
 			fmt.Printf("Path of the secret key file:   %s\n", ks.Path)
-			fmt.Printf("Path of the keystore passowrd: %s\n", filepath.Join(c.String("folder"), "password.txt"))
-			fmt.Printf("Path of the genesis file:      %s\n\n", filepath.Join(c.String("folder"), "genesis.json"))
+			fmt.Printf("Path of the keystore passowrd: %s\n", passwordPath)
+			fmt.Printf("Path of the genesis file:      %s\n\n", genesisPath)
 			return nil
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "folder",
 				Value:    "config",
-				Usage:    "Path of the configuration file.",
-				Required: false,
-				Aliases:  []string{"f"}},
+				Usage:    "directory to store configuration files",
+				Required: false},
 		},
 	}
 
@@ -130,7 +129,7 @@ func main() {
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:     "password",
-					Usage:    "Your new account is locked with the password",
+					Usage:    "your new account is locked with the password",
 					Required: true},
 			},
 			Action: func(c *cli.Context) error {
@@ -150,17 +149,17 @@ func main() {
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:     "address",
-					Usage:    "Account for seal and pre-funded",
+					Usage:    "account for seal and pre-funded",
 					Required: true},
 				&cli.Int64Flag{
 					Name:     "chainid",
 					Value:    0,
-					Usage:    "Chain ID for the POA Network",
+					Usage:    "chainid for the POA Network",
 					Required: true},
 				&cli.Uint64Flag{
 					Name:     "period",
 					Value:    15,
-					Usage:    "Seconds of block time",
+					Usage:    "seconds of block time",
 					Required: false},
 			},
 			Action: func(c *cli.Context) error {
@@ -175,10 +174,11 @@ func main() {
 				}
 				genesis := makeCliqueGenesis(common.HexToAddress(address), big.NewInt(chainID), c.Uint64("period"))
 				fmt.Printf("\nConfigured new genesis spec\n\n")
-				if err := saveGenesis(c.String("folder"), "", genesis); err != nil {
+				genesisPath := filepath.Join(c.String("folder"), "genesis.json")
+				if err := saveGenesis(genesisPath, genesis); err != nil {
 					fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
 				}
-				fmt.Printf("Path of the genesis file: %s\n\n", filepath.Join(c.String("folder"), "genesis.json"))
+				fmt.Printf("Path of the genesis file: %s\n\n", genesisPath)
 				return nil
 			},
 		},
