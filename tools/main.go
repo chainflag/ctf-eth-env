@@ -86,8 +86,9 @@ func main() {
 		Name:                   "conf-gen",
 		Usage:                  "generate config",
 		Action: func(c *cli.Context) error {
-			fmt.Println("you can use 'conf-gen create -p 199924' to make what you want")
-			fmt.Println("you can use 'conf-gen  -h ' to get some help")
+			fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "Welcome to conf-Gen, a tool used to create everything from keystore to Genesis that prepares you for creating your private chain", 0x1B)
+			fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "           You can use 'conf-gen create -p <Your password>' to create everything very easily", 0x1B)
+			fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "           You can also use 'conf-gen -h' to see how to do more personalized configuration", 0x1B)
 			return nil
 		},
 		Flags: []cli.Flag{},
@@ -96,17 +97,17 @@ func main() {
 	app.Commands = []*cli.Command{
 		{
 			Name:  "create",
-			Usage: "Create all of them",
+			Usage: "To create everything you need to set up a private chain",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:     "folder",
-					Usage:    "your config address",
+					Usage:    "Path of the configuration file.",
 					Value:    "../config",
 					Required: false,
 					Aliases:  []string{"f", "v"}},
 				&cli.StringFlag{
 					Name:     "password",
-					Usage:    "your password",
+					Usage:    "The key used to decrypt your <keystore>.[Must be given]",
 					Required: true,
 					Aliases:  []string{"p"}},
 			},
@@ -116,24 +117,27 @@ func main() {
 					log.Fatal(err)
 				}
 				saveGenesis("../config", "genesis", makeCliqueGenesis(ks.Address, nil, 15))
-				fmt.Println("Successful,Here is the public key address corresponding to your keystore:")
-				fmt.Println(ks.Address)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, " Successfully created the required profile.", 0x1B)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "The path to <genesis> : "+c.String("folder"), 0x1B)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "The path to <keystore> : "+c.String("folder")+"/keystore", 0x1B)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "Here is the public key address corresponding to your <keystore>:", 0x1B)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, ks.Address, 0x1B)
 				return nil
 			},
 		},
 		{
 			Name:  "keystore",
-			Usage: "Create your keystore",
+			Usage: "Create your <keystore> more personalized.Use - h for more information",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:     "folder",
 					Value:    "../config/keystore",
-					Usage:    "your Keystore folder",
+					Usage:    "Path of the <keystore> file.",
 					Required: false,
 					Aliases:  []string{"f", "v"}},
 				&cli.StringFlag{
 					Name:     "password",
-					Usage:    "your address",
+					Usage:    "The key used to decrypt your keystore.[Must be given]",
 					Required: true,
 					Aliases:  []string{"p"}},
 			},
@@ -142,47 +146,47 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Println("Successful,Here is the public key address corresponding to your keystore:")
-				fmt.Println(ks.Address)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "The path to <keystore> : "+c.String("folder"), 0x1B)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "Here is the public key address corresponding to your <keystore>:", 0x1B)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, ks.Address, 0x1B)
 				return nil
 			},
 		},
 		{
 			Name:  "genesis",
-			Usage: "Create genesis to generate your private chains..",
+			Usage: "Create your <genesis> more personalized.Use - h for more information.",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:     "genName",
 					Value:    "genesis",
-					Usage:    "your genesisName",
+					Usage:    "The name of your <genesis>.",
 					Required: false,
 					Aliases:  []string{"n"}},
 				&cli.StringFlag{
 					Name:     "folder",
 					Value:    "../config",
-					Usage:    "your folder",
+					Usage:    "Path of the configuration file.",
 					Required: false,
 					Aliases:  []string{"f", "v"}},
 				&cli.StringFlag{
 					Name:     "address",
-					Usage:    "your address",
+					Usage:    "Your original address[Must be given]",
 					Required: true,
 					Aliases:  []string{"a"}},
 				&cli.Int64Flag{
 					Name:     "chainId",
 					Value:    1,
-					Usage:    "your ChainId",
+					Usage:    "The Chainid of your private chain.<Please be careful not to use the popular chainid>",
 					Required: false,
 					Aliases:  []string{"i"}},
 				&cli.Uint64Flag{
 					Name:     "seconds",
 					Value:    15,
-					Usage:    "Your seconds",
+					Usage:    "The time to generate a new block.",
 					Required: false,
 					Aliases:  []string{"s"}},
 			},
 			Action: func(c *cli.Context) error {
-				fmt.Println("hello world")
 				var genesis *core.Genesis
 				if c.Int64("chainId") == 1 {
 					genesis = makeCliqueGenesis(common.HexToAddress(c.String("address")), nil, c.Uint64("seconds"))
@@ -190,7 +194,8 @@ func main() {
 					genesis = makeCliqueGenesis(common.HexToAddress(c.String("address")), big.NewInt(c.Int64("chainId")), c.Uint64("seconds"))
 				}
 				saveGenesis(c.String("folder"), c.String("genName"), genesis)
-				fmt.Println("Successful")
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "Genesis created successfully", 0x1B)
+				fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "The path to <Genesis> : "+c.String("folder"), 0x1B)
 				return nil
 			},
 		},
