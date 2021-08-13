@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/big"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -23,8 +24,8 @@ type Keystore struct {
 	Path    string
 }
 
-func createKeystore(dir, auth string) (*Keystore, error) {
-	account, err := keystore.StoreKey(dir, auth, keystore.StandardScryptN, keystore.StandardScryptP)
+func createKeystore(keydir, auth string) (*Keystore, error) {
+	account, err := keystore.StoreKey(keydir, auth, keystore.StandardScryptN, keystore.StandardScryptP)
 	if err != nil {
 		return nil, err
 	}
@@ -83,14 +84,41 @@ func saveGenesis(folder, network string, genesis *core.Genesis) error {
 	return ioutil.WriteFile(path, out, 0644)
 }
 
+func fatalExit(err error) {
+	fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
+	os.Exit(1)
+}
+
+func randSeq(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
 func main() {
 	app := &cli.App{
 		Name:  "conf-gen",
-		Usage: "generate config",
+		Usage: "To create everything you need to set up the ctf eth env",
 		Action: func(c *cli.Context) error {
-			fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "Welcome to conf-Gen, a tool used to create everything from keystore to Genesis that prepares you for creating your private chain", 0x1B)
-			fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "        You can use 'conf-gen create -password <Your password>' to create everything very easily", 0x1B)
-			fmt.Printf("\n %c[1;40;32m%s%c[0m\n\n", 0x1B, "           You can also use 'conf-gen -h' to see how to do more personalized configuration", 0x1B)
+			rand.Seed(time.Now().UnixNano())
+			password := randSeq(20)
+			ks, err := createKeystore(filepath.Join(c.String("folder"), "keystore"), password)
+			if err != nil {
+				fatalExit(fmt.Errorf("failed to create account: %v", err))
+			}
+			if err := ioutil.WriteFile(filepath.Join(c.String("folder"), "password.txt"), []byte(password), 0644); err != nil {
+				fatalExit(fmt.Errorf("failed to save keystore pass: %v", err))
+			}
+			if err := saveGenesis(c.String("folder"), "", makeCliqueGenesis(ks.Address, nil, 15)); err != nil {
+				fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
+			}
+			fmt.Printf("\nSuccessfully created the required config\n\n")
+			fmt.Printf("Path of the secret key file:   %s\n", ks.Path)
+			fmt.Printf("Path of the keystore passowrd: %s\n", filepath.Join(c.String("folder"), "password.txt"))
+			fmt.Printf("Path of the genesis file:      %s\n\n", filepath.Join(c.String("folder"), "genesis.json"))
 			return nil
 		},
 		Flags: []cli.Flag{
@@ -105,30 +133,6 @@ func main() {
 
 	app.Commands = []*cli.Command{
 		{
-			Name:  "all",
-			Usage: "To create everything you need to set up the ctf eth env",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:     "password",
-					Usage:    "Used to unlock your account at geth launch",
-					Required: true},
-			},
-			Action: func(c *cli.Context) error {
-				ks, err := createKeystore(filepath.Join(c.String("folder"), "keystore"), c.String("password"))
-				if err != nil {
-					log.Fatalf("Failed to create account: %v", err)
-				}
-				if err := saveGenesis(c.String("folder"), "", makeCliqueGenesis(ks.Address, nil, 15)); err != nil {
-					log.Fatalf("Failed to save genesis file: %v", err)
-				}
-
-				fmt.Printf("\nSuccessfully created the required config\n\n")
-				fmt.Printf("Path of the secret key file: %s\n", ks.Path)
-				fmt.Printf("Path of the genesis file:    %s\n\n", filepath.Join(c.String("folder"), "genesis.json"))
-				return nil
-			},
-		},
-		{
 			Name:  "keystore",
 			Usage: "Create a new account and save it in keystore",
 			Flags: []cli.Flag{
@@ -140,7 +144,7 @@ func main() {
 			Action: func(c *cli.Context) error {
 				ks, err := createKeystore(filepath.Join(c.String("folder"), "keystore"), c.String("password"))
 				if err != nil {
-					log.Fatalf("Failed to create account: %v", err)
+					fatalExit(fmt.Errorf("failed to create account: %v", err))
 				}
 				fmt.Printf("\nYour new key was generated\n\n")
 				fmt.Printf("Public address of the key:   %s\n", ks.Address.Hex())
@@ -172,10 +176,15 @@ func main() {
 				if c.Int64("chainid") != 0 {
 					chainID = big.NewInt(c.Int64("chainid"))
 				}
-				genesis := makeCliqueGenesis(common.HexToAddress(c.String("address")), chainID, c.Uint64("period"))
+				address := c.String("address")
+				re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
+				if !re.MatchString(address) {
+					fatalExit(errors.New("invalid address"))
+				}
+				genesis := makeCliqueGenesis(common.HexToAddress(address), chainID, c.Uint64("period"))
 				fmt.Printf("\nConfigured new genesis spec\n\n")
 				if err := saveGenesis(c.String("folder"), "", genesis); err != nil {
-					log.Fatalf("Failed to save genesis file: %v", err)
+					fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
 				}
 				fmt.Printf("Path of the genesis file: %s\n\n", filepath.Join(c.String("folder"), "genesis.json"))
 				return nil
@@ -184,6 +193,6 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		fatalExit(err)
 	}
 }
