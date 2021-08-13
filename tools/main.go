@@ -58,14 +58,6 @@ func makeCliqueGenesis(sealer common.Address, chainID *big.Int, period uint64) *
 			},
 		},
 	}
-
-	if chainID == nil {
-		genesis.Config.ChainID = new(big.Int).SetUint64(uint64(rand.Intn(65536)))
-	}
-	if period == 0 {
-		genesis.Config.Clique.Period = 15
-	}
-
 	genesis.ExtraData = make([]byte, 32+common.AddressLength+65)
 	copy(genesis.ExtraData[32:], sealer[:])
 	genesis.Alloc[sealer] = core.GenesisAccount{
@@ -112,7 +104,7 @@ func main() {
 			if err := ioutil.WriteFile(filepath.Join(c.String("folder"), "password.txt"), []byte(password), 0644); err != nil {
 				fatalExit(fmt.Errorf("failed to save keystore pass: %v", err))
 			}
-			if err := saveGenesis(c.String("folder"), "", makeCliqueGenesis(ks.Address, nil, 15)); err != nil {
+			if err := saveGenesis(c.String("folder"), "", makeCliqueGenesis(ks.Address, new(big.Int).SetUint64(uint64(rand.Intn(65536))), 15)); err != nil {
 				fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
 			}
 			fmt.Printf("\nSuccessfully created the required config\n\n")
@@ -164,7 +156,7 @@ func main() {
 					Name:     "chainid",
 					Value:    0,
 					Usage:    "Chain ID for the POA Network",
-					Required: false},
+					Required: true},
 				&cli.Uint64Flag{
 					Name:     "period",
 					Value:    15,
@@ -172,16 +164,16 @@ func main() {
 					Required: false},
 			},
 			Action: func(c *cli.Context) error {
-				var chainID *big.Int
-				if c.Int64("chainid") != 0 {
-					chainID = big.NewInt(c.Int64("chainid"))
-				}
 				address := c.String("address")
 				re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
 				if !re.MatchString(address) {
 					fatalExit(errors.New("invalid address"))
 				}
-				genesis := makeCliqueGenesis(common.HexToAddress(address), chainID, c.Uint64("period"))
+				chainID := c.Int64("chainid")
+				if chainID <= 0 || chainID > 65535 {
+					fatalExit(errors.New("invalid chainid"))
+				}
+				genesis := makeCliqueGenesis(common.HexToAddress(address), big.NewInt(chainID), c.Uint64("period"))
 				fmt.Printf("\nConfigured new genesis spec\n\n")
 				if err := saveGenesis(c.String("folder"), "", genesis); err != nil {
 					fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
