@@ -115,10 +115,10 @@ func main() {
 		},
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "folder",
-				Value:    "config",
-				Usage:    "directory to store configuration files",
-				Required: false,
+				Name:    "output",
+				Aliases: []string{"o"},
+				Value:   "config",
+				Usage:   "output `directory`",
 			},
 		},
 	}
@@ -161,10 +161,9 @@ func main() {
 					Required: true,
 				},
 				&cli.Uint64Flag{
-					Name:     "period",
-					Value:    15,
-					Usage:    "seconds of block time",
-					Required: false,
+					Name:  "period",
+					Value: 15,
+					Usage: "seconds of block time",
 				},
 			},
 			Action: func(c *cli.Context) error {
