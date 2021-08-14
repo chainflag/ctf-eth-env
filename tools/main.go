@@ -90,7 +90,7 @@ func randSeq(n int) string {
 func main() {
 	app := &cli.App{
 		Name:  "conf-gen",
-		Usage: "To create everything you need to set up the ctf eth env",
+		Usage: "Generate configuration file for the ctf eth env",
 		Action: func(c *cli.Context) error {
 			folder := c.String("folder")
 			rand.Seed(time.Now().UnixNano())
@@ -118,7 +118,8 @@ func main() {
 				Name:     "folder",
 				Value:    "config",
 				Usage:    "directory to store configuration files",
-				Required: false},
+				Required: false,
+			},
 		},
 	}
 
@@ -130,7 +131,8 @@ func main() {
 				&cli.StringFlag{
 					Name:     "password",
 					Usage:    "your new account is locked with the password",
-					Required: true},
+					Required: true,
+				},
 			},
 			Action: func(c *cli.Context) error {
 				ks, err := createKeystore(filepath.Join(c.String("folder"), "keystore"), c.String("password"))
@@ -150,17 +152,20 @@ func main() {
 				&cli.StringFlag{
 					Name:     "address",
 					Usage:    "account for seal and pre-funded",
-					Required: true},
+					Required: true,
+				},
 				&cli.Int64Flag{
 					Name:     "chainid",
 					Value:    0,
 					Usage:    "chainid for the POA Network",
-					Required: true},
+					Required: true,
+				},
 				&cli.Uint64Flag{
 					Name:     "period",
 					Value:    15,
 					Usage:    "seconds of block time",
-					Required: false},
+					Required: false,
+				},
 			},
 			Action: func(c *cli.Context) error {
 				address := c.String("address")
