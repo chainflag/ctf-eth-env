@@ -63,7 +63,6 @@ func makeCliqueGenesis(sealer common.Address, chainID *big.Int, period uint64) *
 	genesis.Alloc[sealer] = core.GenesisAccount{
 		Balance: new(big.Int).Lsh(big.NewInt(1), 256-7), // 2^256 / 128 (allow many pre-funds without balance overflows)
 	}
-
 	return genesis
 }
 
