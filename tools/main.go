@@ -92,7 +92,7 @@ func main() {
 		Name:  "conf-gen",
 		Usage: "Generate configuration file for the ctf eth env",
 		Action: func(c *cli.Context) error {
-			folder := c.String("folder")
+			folder := c.String("output")
 			rand.Seed(time.Now().UnixNano())
 			password := randSeq(20)
 			ks, err := createKeystore(filepath.Join(folder, "keystore"), password)
@@ -135,7 +135,7 @@ func main() {
 				},
 			},
 			Action: func(c *cli.Context) error {
-				ks, err := createKeystore(filepath.Join(c.String("folder"), "keystore"), c.String("password"))
+				ks, err := createKeystore(filepath.Join(c.String("output"), "keystore"), c.String("password"))
 				if err != nil {
 					fatalExit(fmt.Errorf("failed to create account: %v", err))
 				}
@@ -178,7 +178,7 @@ func main() {
 				}
 				genesis := makeCliqueGenesis(common.HexToAddress(address), big.NewInt(chainID), c.Uint64("period"))
 				fmt.Printf("\nConfigured new genesis spec\n\n")
-				genesisPath := filepath.Join(c.String("folder"), "genesis.json")
+				genesisPath := filepath.Join(c.String("output"), "genesis.json")
 				if err := saveGenesis(genesisPath, genesis); err != nil {
 					fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
 				}
