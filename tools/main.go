@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"text/template"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -18,6 +19,15 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/urfave/cli/v2"
 )
+
+var faucetConfig = `provider: "http://geth:8545"
+payout: 1
+queuecap: 100
+
+wallet:
+  keystore: "keystore/{{.ksPath}}"
+  password: "{{.ksPass}}"
+`
 
 type Keystore struct {
 	Address common.Address
@@ -72,6 +82,17 @@ func saveGenesis(genesisPath string, genesis *core.Genesis) error {
 	return ioutil.WriteFile(path, out, 0644)
 }
 
+func generateFaucetConfig(configPath, ksPath, ksAuth string) error {
+	tmpl := template.Must(template.New("").Parse(faucetConfig))
+	f, err := os.Create(configPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return tmpl.Execute(f, map[string]string{"ksPath": ksPath, "ksPass": ksAuth})
+}
+
 func fatalExit(err error) {
 	fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
 	os.Exit(1)
@@ -89,29 +110,7 @@ func randSeq(n int) string {
 func main() {
 	app := &cli.App{
 		Name:  "conf-gen",
-		Usage: "Generate configuration file for the ctf eth env",
-		Action: func(c *cli.Context) error {
-			folder := c.String("output")
-			rand.Seed(time.Now().UnixNano())
-			password := randSeq(20)
-			ks, err := createKeystore(filepath.Join(folder, "keystore"), password)
-			if err != nil {
-				fatalExit(fmt.Errorf("failed to create account: %v", err))
-			}
-			passwordPath := filepath.Join(folder, "password.txt")
-			if err := ioutil.WriteFile(passwordPath, []byte(password), 0644); err != nil {
-				fatalExit(fmt.Errorf("failed to save keystore pass: %v", err))
-			}
-			genesisPath := filepath.Join(folder, "genesis.json")
-			if err := saveGenesis(genesisPath, makeCliqueGenesis(ks.Address, new(big.Int).SetUint64(uint64(rand.Intn(65536))), 15)); err != nil {
-				fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
-			}
-			fmt.Printf("\nSuccessfully created the required config\n\n")
-			fmt.Printf("Path of the secret key file:   %s\n", ks.Path)
-			fmt.Printf("Path of the keystore passowrd: %s\n", passwordPath)
-			fmt.Printf("Path of the genesis file:      %s\n\n", genesisPath)
-			return nil
-		},
+		Usage: "ctf-eth-env configuration generator",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "output",
@@ -123,6 +122,37 @@ func main() {
 	}
 
 	app.Commands = []*cli.Command{
+		{
+			Name:  "all",
+			Usage: "Create all config for setting up ctf eth env",
+			Action: func(c *cli.Context) error {
+				folder := c.String("output")
+				rand.Seed(time.Now().UnixNano())
+				password := randSeq(20)
+				ks, err := createKeystore(filepath.Join(folder, "keystore"), password)
+				if err != nil {
+					fatalExit(fmt.Errorf("failed to create account: %v", err))
+				}
+				passwordPath := filepath.Join(folder, "password.txt")
+				if err := ioutil.WriteFile(passwordPath, []byte(password), 0644); err != nil {
+					fatalExit(fmt.Errorf("failed to save keystore pass: %v", err))
+				}
+				genesisPath := filepath.Join(folder, "genesis.json")
+				if err := saveGenesis(genesisPath, makeCliqueGenesis(ks.Address, new(big.Int).SetUint64(uint64(rand.Intn(65536))), 15)); err != nil {
+					fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
+				}
+				faucetConfigPath := filepath.Join(folder, "faucet.yml")
+				if err := generateFaucetConfig(faucetConfigPath, filepath.Base(ks.Path), password); err != nil {
+					fatalExit(err)
+				}
+				fmt.Printf("\nSuccessfully created the required config\n\n")
+				fmt.Printf("Path of the secret key file:   %s\n", ks.Path)
+				fmt.Printf("Path of the keystore passowrd: %s\n", passwordPath)
+				fmt.Printf("Path of the genesis file:      %s\n", genesisPath)
+				fmt.Printf("Path of the faucet config:     %s\n\n", faucetConfigPath)
+				return nil
+			},
+		},
 		{
 			Name:  "keystore",
 			Usage: "Create a new account and save it in keystore",
