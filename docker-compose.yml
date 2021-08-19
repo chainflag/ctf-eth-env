@@ -20,3 +20,17 @@ services:
     depends_on:
       - geth
     restart: always
+
+  faucet:
+    image: chainflag/eth-faucet
+    container_name: ethfaucet
+    ports:
+      - "8080:8080"
+    links:
+      - geth
+    volumes:
+      - ./config/keystore:/app/keystore
+      - ./config/faucet.yml:/app/config.yml
+    depends_on:
+      - geth
+    restart: always
