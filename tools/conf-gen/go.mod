@@ -1,4 +1,4 @@
-module github.com/chainflag/ctf-eth-env/tools
+module github.com/chainflag/ctf-eth-env/tools/conf-gen
 
 go 1.16
 
