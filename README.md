@@ -10,74 +10,22 @@ It is unfair that some CTF blockchain challenge players can cheat by searching b
 So the idea of this project is to disable several RPC methods (e.g. `eth_getBlockByHash`, `eth_getBlockByNumber`) of an Ethereum POA node and then use it as the challenge server-side environment. In this way, players on the client side have no longer any access to the transaction IDs of others. 
 
 ## Install
+1. Clone the repository
 ```
 git clone https://github.com/chainflag/ctf-eth-env.git
 cd ctf-eth-env
 ```
+2. Get config generator
+```
+go get github.com/chainflag/ctf-eth-env/tools/conf-gen
+```
 
 ## Usage
-### Create a sealer account
-```bash
-docker run -it --rm  -v `pwd`/config:/root/.ethereum ethereum/client-go account new
-echo "your keystore password" > `pwd`/config/password.txt
+1. Create all config for setting up ctf eth env
 ```
-### Generate genesis config
-```bash
-$ go get github.com/ethereum/go-ethereum/cmd/puppeth # or download Geth & Tools from https://geth.ethereum.org/downloads/
-$ puppeth
-Please specify a network name to administer (no spaces, hyphens or capital letters please)
-> genesis
-
-What would you like to do? (default = stats)
- 1. Show network stats
- 2. Configure new genesis
- 3. Track new remote server
- 4. Deploy network components
-> 2
-
-What would you like to do? (default = create)
- 1. Create new genesis from scratch
- 2. Import already existing genesis
-> 1
-
-Which consensus engine to use? (default = clique)
- 1. Ethash - proof-of-work
- 2. Clique - proof-of-authority
-> 2
-
-How many seconds should blocks take? (default = 15)
-> 5
-
-Which accounts are allowed to seal? (mandatory at least one)
-> 0x # Enter the account address created in the previous step
-
-Which accounts should be pre-funded? (advisable at least one)
-> 0x # Enter the account address created in the previous step
-
-Should the precompile-addresses (0x1 .. 0xff) be pre-funded with 1 wei? (advisable yes)
-> no
-
-Specify your chain/network ID if you want an explicit one (default = random)
->
-
-What would you like to do? (default = stats)
- 1. Show network stats
- 2. Manage existing genesis
- 3. Track new remote server
- 4. Deploy network components
-> 2
-
- 1. Modify existing configurations
- 2. Export genesis configurations
- 3. Remove genesis configuration
-> 2
-
-Which folder to save the genesis specs into? (default = current)
-  Will create genesis.json, genesis-aleth.json, genesis-harmony.json, genesis-parity.json
-> config
+conf-gen all
 ```
-
-### Run Geth with proxy
+2. Start eth json rpc with proxy and run ether faucet
 ```bash
 docker-compose up -d
 ```
