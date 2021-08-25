@@ -23,7 +23,7 @@ go get github.com/chainflag/ctf-eth-env/tools/conf-gen
 ## Usage
 1. Create all config for setting up ctf eth env
 ```
-conf-gen all
+conf-gen
 ```
 2. Start eth json rpc with proxy and run ether faucet
 ```bash

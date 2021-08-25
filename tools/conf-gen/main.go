@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"regexp"
 	"text/template"
 	"time"
 
@@ -76,12 +75,6 @@ func makeCliqueGenesis(sealer common.Address, chainID *big.Int, period uint64) *
 	return genesis
 }
 
-func saveGenesis(genesisPath string, genesis *core.Genesis) error {
-	path, _ := filepath.Abs(genesisPath)
-	out, _ := json.MarshalIndent(genesis, "", "  ")
-	return ioutil.WriteFile(path, out, 0644)
-}
-
 func generateFaucetConfig(configPath, ksPath, ksAuth string) error {
 	tmpl := template.Must(template.New("").Parse(faucetConfig))
 	f, err := os.Create(configPath)
@@ -118,102 +111,53 @@ func main() {
 				Value:   "config",
 				Usage:   "output `directory`",
 			},
-		},
-	}
-
-	app.Commands = []*cli.Command{
-		{
-			Name:  "all",
-			Usage: "Create all config for setting up ctf eth env",
-			Action: func(c *cli.Context) error {
-				folder := c.String("output")
-				rand.Seed(time.Now().UnixNano())
-				password := randSeq(20)
-				ks, err := createKeystore(filepath.Join(folder, "keystore"), password)
-				if err != nil {
-					fatalExit(fmt.Errorf("failed to create account: %v", err))
-				}
-				passwordPath := filepath.Join(folder, "password.txt")
-				if err := ioutil.WriteFile(passwordPath, []byte(password), 0644); err != nil {
-					fatalExit(fmt.Errorf("failed to save keystore pass: %v", err))
-				}
-				genesisPath := filepath.Join(folder, "genesis.json")
-				if err := saveGenesis(genesisPath, makeCliqueGenesis(ks.Address, new(big.Int).SetUint64(uint64(rand.Intn(65536))), 15)); err != nil {
-					fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
-				}
-				faucetConfigPath := filepath.Join(folder, "faucet.yml")
-				if err := generateFaucetConfig(faucetConfigPath, filepath.Base(ks.Path), password); err != nil {
-					fatalExit(err)
-				}
-				fmt.Printf("\nSuccessfully created the required config\n\n")
-				fmt.Printf("Path of the secret key file:   %s\n", ks.Path)
-				fmt.Printf("Path of the keystore passowrd: %s\n", passwordPath)
-				fmt.Printf("Path of the genesis file:      %s\n", genesisPath)
-				fmt.Printf("Path of the faucet config:     %s\n\n", faucetConfigPath)
-				return nil
+			&cli.Uint64Flag{
+				Name:        "chainid",
+				Value:       0,
+				Usage:       "chainid for the POA Network",
+				DefaultText: "random",
+			},
+			&cli.Uint64Flag{
+				Name:  "period",
+				Value: 15,
+				Usage: "seconds of block time",
 			},
 		},
-		{
-			Name:  "keystore",
-			Usage: "Create a new account and save it in keystore",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:     "password",
-					Usage:    "your new account is locked with the password",
-					Required: true,
-				},
-			},
-			Action: func(c *cli.Context) error {
-				ks, err := createKeystore(filepath.Join(c.String("output"), "keystore"), c.String("password"))
-				if err != nil {
-					fatalExit(fmt.Errorf("failed to create account: %v", err))
-				}
-				fmt.Printf("\nYour new key was generated\n\n")
-				fmt.Printf("Public address of the key:   %s\n", ks.Address.Hex())
-				fmt.Printf("Path of the secret key file: %s\n\n", ks.Path)
-				return nil
-			},
-		},
-		{
-			Name:  "genesis",
-			Usage: "Create a Clique consensus genesis spec",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:     "address",
-					Usage:    "account for seal and pre-funded",
-					Required: true,
-				},
-				&cli.Int64Flag{
-					Name:     "chainid",
-					Value:    0,
-					Usage:    "chainid for the POA Network",
-					Required: true,
-				},
-				&cli.Uint64Flag{
-					Name:  "period",
-					Value: 15,
-					Usage: "seconds of block time",
-				},
-			},
-			Action: func(c *cli.Context) error {
-				address := c.String("address")
-				re := regexp.MustCompile("^0x[0-9a-fA-F]{40}$")
-				if !re.MatchString(address) {
-					fatalExit(errors.New("invalid address"))
-				}
-				chainID := c.Int64("chainid")
-				if chainID <= 0 || chainID > 65535 {
-					fatalExit(errors.New("invalid chainid"))
-				}
-				genesis := makeCliqueGenesis(common.HexToAddress(address), big.NewInt(chainID), c.Uint64("period"))
-				fmt.Printf("\nConfigured new genesis spec\n\n")
-				genesisPath := filepath.Join(c.String("output"), "genesis.json")
-				if err := saveGenesis(genesisPath, genesis); err != nil {
-					fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
-				}
-				fmt.Printf("Path of the genesis file: %s\n\n", genesisPath)
-				return nil
-			},
+		Action: func(c *cli.Context) error {
+			if c.Uint64("chainid") > 65535 {
+				fatalExit(errors.New("invalid chainid"))
+			}
+			folder := c.String("output")
+			rand.Seed(time.Now().UnixNano())
+			password := randSeq(20)
+			ks, err := createKeystore(filepath.Join(folder, "keystore"), password)
+			if err != nil {
+				fatalExit(fmt.Errorf("failed to create account: %v", err))
+			}
+			passwordPath := filepath.Join(folder, "password.txt")
+			if err := ioutil.WriteFile(passwordPath, []byte(password), 0644); err != nil {
+				fatalExit(fmt.Errorf("failed to save keystore pass: %v", err))
+			}
+			chainID := c.Uint64("chainid")
+			if chainID == 0 {
+				chainID = uint64(rand.Intn(65536))
+			}
+			genesisPath := filepath.Join(folder, "genesis.json")
+			genesis, _ := json.MarshalIndent(makeCliqueGenesis(ks.Address, new(big.Int).SetUint64(chainID), c.Uint64("period")), "", "  ")
+			if err := ioutil.WriteFile(genesisPath, genesis, 0644); err != nil {
+				fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
+			}
+			faucetConfigPath := filepath.Join(folder, "faucet.yml")
+			if err := generateFaucetConfig(faucetConfigPath, filepath.Base(ks.Path), password); err != nil {
+				fatalExit(err)
+			}
+			fmt.Printf("\nSuccessfully created the required config\n\n")
+			fmt.Printf("Public address of new key:     %s\n", ks.Address.Hex())
+			fmt.Printf("Path of the secret key file:   %s\n", ks.Path)
+			fmt.Printf("Path of the keystore passowrd: %s\n", passwordPath)
+			fmt.Printf("Path of the genesis file:      %s\n", genesisPath)
+			fmt.Printf("Path of the faucet config:     %s\n\n", faucetConfigPath)
+			return nil
 		},
 	}
 
