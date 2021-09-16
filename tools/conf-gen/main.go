@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"text/template"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -18,15 +17,6 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/urfave/cli/v2"
 )
-
-var faucetConfig = `provider: "http://geth:8545"
-payout: 1
-queuecap: 100
-
-wallet:
-  keystore: "keystore/{{.ksPath}}"
-  password: "{{.ksPass}}"
-`
 
 type Keystore struct {
 	Address common.Address
@@ -73,17 +63,6 @@ func makeCliqueGenesis(sealer common.Address, chainID *big.Int, period uint64) *
 		Balance: new(big.Int).Lsh(big.NewInt(1), 256-7), // 2^256 / 128 (allow many pre-funds without balance overflows)
 	}
 	return genesis
-}
-
-func generateFaucetConfig(configPath, ksPath, ksAuth string) error {
-	tmpl := template.Must(template.New("").Parse(faucetConfig))
-	f, err := os.Create(configPath)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	return tmpl.Execute(f, map[string]string{"ksPath": ksPath, "ksPass": ksAuth})
 }
 
 func fatalExit(err error) {
@@ -147,16 +126,11 @@ func main() {
 			if err := ioutil.WriteFile(genesisPath, genesis, 0644); err != nil {
 				fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
 			}
-			faucetConfigPath := filepath.Join(folder, "faucet.yml")
-			if err := generateFaucetConfig(faucetConfigPath, filepath.Base(ks.Path), password); err != nil {
-				fatalExit(err)
-			}
 			fmt.Printf("\nSuccessfully created the required config\n\n")
 			fmt.Printf("Public address of new key:     %s\n", ks.Address.Hex())
 			fmt.Printf("Path of the secret key file:   %s\n", ks.Path)
 			fmt.Printf("Path of the keystore passowrd: %s\n", passwordPath)
 			fmt.Printf("Path of the genesis file:      %s\n", genesisPath)
-			fmt.Printf("Path of the faucet config:     %s\n\n", faucetConfigPath)
 			return nil
 		},
 	}

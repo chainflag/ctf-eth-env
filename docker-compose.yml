@@ -22,15 +22,19 @@ services:
     restart: always
 
   faucet:
-    image: chainflag/eth-faucet
+    image: chainflag/eth-faucet:1.0.0
     container_name: ethfaucet
+    environment:
+      - WEB3_PROVIDER=http://geth:8545
+      - KEYSTORE=/app/keystore
     ports:
       - "8080:8080"
     links:
       - geth
     volumes:
       - ./config/keystore:/app/keystore
-      - ./config/faucet.yml:/app/config.yml
+      - ./config/password.txt:/app/password.txt
+    command: -interval 1
     depends_on:
       - geth
     restart: always

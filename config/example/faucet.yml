@@ -1,7 +1,0 @@
-provider: "http://geth:8545"
-payout: 1
-queuecap: 100
-
-wallet:
-  keystore: "keystore"
-  password: "chainflag"
