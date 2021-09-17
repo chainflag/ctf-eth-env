@@ -1,4 +1,4 @@
-module github.com/chainflag/ctf-eth-env/tools/conf-gen
+module github.com/chainflag/ctf-eth-env/genesis-builder
 
 go 1.16
 

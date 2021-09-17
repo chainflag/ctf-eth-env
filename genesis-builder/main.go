@@ -4,36 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math/big"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/urfave/cli/v2"
 )
-
-type Keystore struct {
-	Address common.Address
-	Path    string
-}
-
-func createKeystore(keydir, auth string) (*Keystore, error) {
-	account, err := keystore.StoreKey(keydir, auth, keystore.StandardScryptN, keystore.StandardScryptP)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Keystore{
-		Address: account.Address,
-		Path:    account.URL.Path,
-	}, nil
-}
 
 func makeCliqueGenesis(sealer common.Address, chainID *big.Int, period uint64) *core.Genesis {
 	genesis := &core.Genesis{
@@ -70,25 +51,21 @@ func fatalExit(err error) {
 	os.Exit(1)
 }
 
-func randSeq(n int) string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
-}
-
 func main() {
 	app := &cli.App{
-		Name:  "conf-gen",
-		Usage: "ctf-eth-env configuration generator",
+		Name:  "genesis-builder",
+		Usage: "Create a ethereum clique consensus genesis spec file",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "output",
 				Aliases: []string{"o"},
 				Value:   "config",
 				Usage:   "output `directory`",
+			},
+			&cli.StringFlag{
+				Name:     "address",
+				Usage:    "account for seal and pre-funded",
+				Required: true,
 			},
 			&cli.Uint64Flag{
 				Name:        "chainid",
@@ -103,34 +80,23 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
+			address := c.String("address")
+			if !common.IsHexAddress(address) {
+				fatalExit(errors.New("invalid address"))
+			}
 			if c.Uint64("chainid") > 65535 {
 				fatalExit(errors.New("invalid chainid"))
-			}
-			folder := c.String("output")
-			rand.Seed(time.Now().UnixNano())
-			password := randSeq(20)
-			ks, err := createKeystore(filepath.Join(folder, "keystore"), password)
-			if err != nil {
-				fatalExit(fmt.Errorf("failed to create account: %v", err))
-			}
-			passwordPath := filepath.Join(folder, "password.txt")
-			if err := ioutil.WriteFile(passwordPath, []byte(password), 0644); err != nil {
-				fatalExit(fmt.Errorf("failed to save keystore pass: %v", err))
 			}
 			chainID := c.Uint64("chainid")
 			if chainID == 0 {
 				chainID = uint64(rand.Intn(65536))
 			}
-			genesisPath := filepath.Join(folder, "genesis.json")
-			genesis, _ := json.MarshalIndent(makeCliqueGenesis(ks.Address, new(big.Int).SetUint64(chainID), c.Uint64("period")), "", "  ")
-			if err := ioutil.WriteFile(genesisPath, genesis, 0644); err != nil {
+			genesisPath := filepath.Join(c.String("output"), "genesis.json")
+			genesis, _ := json.MarshalIndent(makeCliqueGenesis(common.HexToAddress(address), new(big.Int).SetUint64(chainID), c.Uint64("period")), "", "  ")
+			if err := os.WriteFile(genesisPath, genesis, 0644); err != nil {
 				fatalExit(fmt.Errorf("failed to save genesis file: %v", err))
 			}
-			fmt.Printf("\nSuccessfully created the required config\n\n")
-			fmt.Printf("Public address of new key:     %s\n", ks.Address.Hex())
-			fmt.Printf("Path of the secret key file:   %s\n", ks.Path)
-			fmt.Printf("Path of the keystore passowrd: %s\n", passwordPath)
-			fmt.Printf("Path of the genesis file:      %s\n", genesisPath)
+			fmt.Printf("Path of the genesis file: %s\n", genesisPath)
 			return nil
 		},
 	}
