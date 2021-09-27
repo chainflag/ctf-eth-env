@@ -9,7 +9,7 @@ It is unfair that some CTF blockchain challenge players can cheat by searching b
 
 So the idea of this project is to disable several RPC methods (e.g. `eth_getBlockByHash`, `eth_getBlockByNumber`) of an Ethereum POA node and then use it as the challenge server-side environment. In this way, players on the client side have no longer any access to the transaction IDs of others. 
 
-## Getting Started
+## Usage
 1. Clone the repository
 ```
 git clone https://github.com/chainflag/ctf-eth-env.git
@@ -33,9 +33,12 @@ genesis-builder --address "address created in previous step"
 docker-compose up -d
 ```
 
-*open port for services:*
-* json-rpc with whitelist: 8545  
-* ether faucet: 8080
+**Open Ports**
+
+| Service                 | Port
+| ----------------------- | -----
+| json-rpc with whitelist | 8545      
+| ether faucet            | 8080
 
 ## Related Project
 * [eth-faucet](https://github.com/chainflag/eth-faucet)
