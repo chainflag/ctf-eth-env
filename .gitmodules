@@ -1,3 +1,0 @@
-[submodule "eth-faucet"]
-	path = eth-faucet
-	url = https://github.com/chainflag/eth-faucet.git
